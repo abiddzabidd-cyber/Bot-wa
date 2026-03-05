@@ -1,6 +1,5 @@
 // index.js
-const { default: makeWASocket, useSingleFileAuthState, fetchLatestBaileysVersion, jidNormalizedUser } = require("@whiskeysockets/baileys")
-const { state, saveState } = useSingleFileAuthState('./auth_info.json')
+const { default: makeWASocket, useMultiFileAuthState } = require("@whiskeysockets/baileys")
 
 // === Variable Bot ===
 const BOT_NAME = "Bot Abid"
@@ -15,13 +14,17 @@ const MENU_TEXT = `
 `
 
 async function startBot() {
+    // buat session auth otomatis (folder auth_info)
+    const { state, saveCreds } = await useMultiFileAuthState('auth_info')
+
     const sock = makeWASocket({
         auth: state
     })
 
     // simpan session otomatis
-    sock.ev.on('creds.update', saveState)
+    sock.ev.on('creds.update', saveCreds)
 
+    // handle pesan masuk
     sock.ev.on('messages.upsert', async ({ messages }) => {
         const m = messages[0]
         if (!m.message) return
@@ -43,12 +46,10 @@ async function startBot() {
             await sock.sendMessage(from, { text: `Owner: ${OWNER}` })
         }
 
-        // STICKER (placeholder)
+        // STICKER placeholder
         if (text === ".stiker") {
             await sock.sendMessage(from, { text: "Kirim gambar dengan caption .stiker" })
         }
-
-        // Kalau mau tambah command tinggal copy pattern di atas
     })
 }
 
